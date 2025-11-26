@@ -9,11 +9,7 @@ const port = process.env.PORT || 3000;
 const app = new Elysia()
 	.use(
 		cors({
-			origin: ((req: Request) => {
-				const allowed = process.env.CORS_ALLOWED_ORIGINS?.split(',') || [];
-				const reqOrigin = req.headers.get('origin') || '';
-				return allowed.includes(reqOrigin) as boolean; // 强制类型断言
-			}) as (req: Request) => boolean,
+			origin: ['https://board.ichiyo.in', 'https://board.server.ichiyo.in'],
 			credentials: true,
 		})
 	)
