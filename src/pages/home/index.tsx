@@ -52,7 +52,7 @@ export function HomePage() {
 	const [isSticky, setIsSticky] = useState(false);
 	const [isLogged, setIsLogged] = useState<boolean | null>(null);
 
-	// WebSocket
+	// WebSocket - 允许未登录用户也能连接，使用游客身份
 	const {
 		isConnected,
 		userId,
@@ -61,7 +61,7 @@ export function HomePage() {
 		sendStrokeFinish,
 		sendUndo,
 		sendRedo,
-	} = useWebSocket(isLogged === true, roomId); // 首页需要登录状态才能使用撤销/重做
+	} = useWebSocket(true, roomId); // 允许游客使用撤销/重做功能
 
 	// 监听 WebSocket
 	useEffect(() => {
