@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import { strokes, userStats } from '../db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, asc } from 'drizzle-orm';
 import { optionalAuth } from '../utils/verify';
 
 const DrawDataSchema = t.Object({
@@ -25,6 +25,7 @@ const StrokeFinishSchema = t.Object({
 	color: t.String(),
 	size: t.Number(),
 	points: t.Array(StrokePointSchema),
+	createdAt: t.Optional(t.String()),
 });
 
 const CursorDataSchema = t.Object({
@@ -44,6 +45,7 @@ const MessageSchema = t.Object({
 	data: t.Optional(
 		t.Union([DrawDataSchema, StrokeFinishSchema, CursorDataSchema, t.Any()])
 	),
+	strokeId: t.Optional(t.String()), // 用于指定撤销的笔画ID
 });
 
 const roomUsers = new Map<string, Set<string>>();
@@ -143,6 +145,17 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 							roomId: roomId,
 							userId: userId,
 							data: strokeData,
+							createdAt: strokeData.createdAt
+								? new Date(strokeData.createdAt)
+								: new Date(),
+						});
+
+						// 广播笔画完成消息给房间内所有用户
+						ws.publish(roomId, {
+							type: 'stroke-finished',
+							data: strokeData,
+							userId,
+							timestamp: Date.now(),
 						});
 
 						// 更新用户统计
@@ -222,35 +235,52 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 
 				case 'undo':
 					try {
-						// 查找该用户最后一条未删除的笔画记录
-						const lastStroke = await db
-							.select()
-							.from(strokes)
-							.where(
-								and(
-									eq(strokes.userId, userId),
-									eq(strokes.roomId, roomId),
-									eq(strokes.isDeleted, false)
-								)
-							)
-							.orderBy(desc(strokes.createdAt))
-							.limit(1);
+						let strokeId = message.strokeId; // 使用客户端传递的strokeId
 
-						if (lastStroke.length > 0) {
-							const strokeId = lastStroke[0]!.id;
+						// 如果客户端没有传递strokeId，则查找用户最新的笔画
+						if (!strokeId) {
+							const lastStroke = await db
+								.select()
+								.from(strokes)
+								.where(
+									and(
+										eq(strokes.userId, userId),
+										eq(strokes.roomId, roomId),
+										eq(strokes.isDeleted, false)
+									)
+								)
+								.orderBy(desc(strokes.createdAt))
+								.limit(1);
+
+							if (lastStroke.length > 0) {
+								strokeId = lastStroke[0]!.id;
+							}
+						}
+
+						if (strokeId) {
+							console.log(`撤销笔画: 用户 ${userId}, 笔画ID: ${strokeId}`);
 							// 标记为已删除而不是物理删除
 							await db
 								.update(strokes)
 								.set({ isDeleted: true })
 								.where(eq(strokes.id, strokeId));
-						}
 
-						// 广播撤销消息
-						ws.publish(roomId, {
-							type: 'undo',
-							userId,
-							timestamp: Date.now(),
-						});
+							// 广播撤销消息，携带被删除的笔画 id，让前端精确删除
+							ws.publish(roomId, {
+								type: 'undo',
+								strokeId: strokeId,
+								userId,
+								timestamp: Date.now(),
+							});
+						} else {
+							// 没有可撤销的笔画，仍广播（让客户端知道无操作）
+							ws.publish(roomId, {
+								type: 'undo',
+								strokeId: null,
+								userId,
+								timestamp: Date.now(),
+							});
+						}
 					} catch (e) {
 						console.error('撤销笔画失败:', e);
 					}
@@ -258,8 +288,9 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 
 				case 'redo':
 					try {
-						// 查找该用户最后一条已删除的笔画记录
-						const lastDeletedStroke = await db
+						// 查找该用户已删除的笔画记录，按创建时间正序排序
+						// 这样可以确保按笔画创建的顺序恢复，而不是按删除顺序
+						const deletedStrokes = await db
 							.select()
 							.from(strokes)
 							.where(
@@ -269,11 +300,16 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 									eq(strokes.isDeleted, true)
 								)
 							)
-							.orderBy(desc(strokes.createdAt))
-							.limit(1);
+							.orderBy(asc(strokes.createdAt));
 
-						if (lastDeletedStroke.length > 0) {
-							const strokeId = lastDeletedStroke[0]!.id;
+						if (deletedStrokes.length > 0) {
+							// 找到最早创建但被删除的笔画
+							const strokeToRedo = deletedStrokes[0];
+							if (!strokeToRedo) {
+								return; // 如果找不到笔画，直接返回
+							}
+							const strokeId = strokeToRedo.id;
+							console.log(`重做笔画: 用户 ${userId}, 笔画ID: ${strokeId}`);
 							// 恢复已删除的笔画
 							await db
 								.update(strokes)
@@ -283,7 +319,7 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 							// 广播重做消息
 							ws.publish(roomId, {
 								type: 'redo',
-								data: lastDeletedStroke[0]!.data,
+								data: strokeToRedo.data,
 								userId,
 								timestamp: Date.now(),
 							});

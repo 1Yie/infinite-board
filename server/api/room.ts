@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
-import { rooms, strokes, userStats } from '../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { rooms, strokes, userStats, users } from '../db/schema';
+import { eq, desc, sql } from 'drizzle-orm';
 import { auth } from '../utils/verify';
 
 export const roomRoutes = new Elysia({ prefix: '/rooms' })
@@ -10,8 +10,17 @@ export const roomRoutes = new Elysia({ prefix: '/rooms' })
 	.get('/', async () => {
 		try {
 			const allRooms = await db
-				.select()
+				.select({
+					id: rooms.id,
+					name: rooms.name,
+					ownerId: rooms.ownerId,
+					isPrivate: rooms.isPrivate,
+					password: rooms.password,
+					createdAt: rooms.createdAt,
+					creatorName: users.username,
+				})
 				.from(rooms)
+				.leftJoin(users, eq(sql`CAST(${rooms.ownerId} AS INTEGER)`, users.id))
 				.orderBy(desc(rooms.createdAt));
 			return { success: true, data: allRooms };
 		} catch (e) {
