@@ -331,7 +331,14 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 							// 找到最早创建但被删除的笔画
 							const strokeToRedo = deletedStrokes[0];
 							if (!strokeToRedo) {
-								return; // 如果找不到笔画，直接返回
+								// 没有可重做的笔画，发送空消息让客户端知道无操作
+								ws.publish(roomId, {
+									type: 'redo',
+									data: null,
+									userId,
+									timestamp: Date.now(),
+								});
+								return;
 							}
 							const strokeId = strokeToRedo.id;
 							console.log(`重做笔画: 用户 ${userId}, 笔画ID: ${strokeId}`);
@@ -345,6 +352,14 @@ export const websocketRoutes = new Elysia({ prefix: '/ws' })
 							ws.publish(roomId, {
 								type: 'redo',
 								data: strokeToRedo.data,
+								userId,
+								timestamp: Date.now(),
+							});
+						} else {
+							// 没有可重做的笔画，发送空消息让客户端知道无操作
+							ws.publish(roomId, {
+								type: 'redo',
+								data: null,
 								userId,
 								timestamp: Date.now(),
 							});

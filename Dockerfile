@@ -11,17 +11,17 @@ COPY bun.lock ./
 # 安装前端依赖
 RUN npm install
 
-# 复制所有必要的配置文件
-COPY tsconfig*.json ./
+# 复制前端源代码（排除node_modules）
+COPY src/ ./src/
+COPY public/ ./public/
+COPY tsconfig.json ./
+COPY tsconfig.app.json ./
+COPY tsconfig.node.json ./
 COPY vite.config.ts ./
 COPY index.html ./
 COPY components.json ./
 COPY .prettierrc.json ./
 COPY eslint.config.js ./
-
-# 复制前端源代码（排除node_modules）
-COPY src/ ./src/
-COPY public/ ./public/
 
 # 构建前端
 RUN npm run build

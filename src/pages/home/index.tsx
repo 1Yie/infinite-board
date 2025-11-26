@@ -61,7 +61,7 @@ export function HomePage() {
 		sendStrokeFinish,
 		sendUndo,
 		sendRedo,
-	} = useWebSocket(false, roomId); // 首页不需要强制登录状态
+	} = useWebSocket(isLogged === true, roomId); // 首页需要登录状态才能使用撤销/重做
 
 	// 监听 WebSocket
 	useEffect(() => {
@@ -76,33 +76,58 @@ export function HomePage() {
 			if (msg.type === 'undo') {
 				// 处理撤销消息：根据服务器广播的 strokeId 删除指定笔画
 				if (msg.strokeId) {
+					console.log(
+						`收到撤销消息，删除笔画ID: ${msg.strokeId}, 用户ID: ${msg.userId}`
+					);
 					canvasRef.current?.removeStrokeById(msg.strokeId);
+				} else {
+					console.log('收到撤销消息，但没有可撤销的笔画');
 				}
 			}
 			if (msg.type === 'redo') {
 				// 处理重做消息：添加服务器广播的笔画数据
-				canvasRef.current?.addStroke(msg.data as StrokeData);
+				console.log(
+					`收到重做消息，笔画ID: ${msg.data?.id}, 用户ID: ${msg.userId}`
+				);
+				if (msg.data) {
+					canvasRef.current?.addStroke(msg.data as StrokeData);
+				}
 			}
 		});
 		return () => unsubscribe();
 	}, [userId, onMessage]);
 
 	const handleFinish = useCallback(
-		(stroke: Omit<StrokeData, 'id'>) => {
+		(stroke: StrokeData) => {
 			if (!isConnected) return;
-			sendStrokeFinish({ ...stroke, id: crypto.randomUUID() });
+			// 直接传递笔画数据，不生成新的ID
+			sendStrokeFinish({
+				...stroke,
+				createdAt: stroke.createdAt || new Date(),
+			});
 		},
 		[isConnected, sendStrokeFinish]
 	);
 
 	const handleUndo = useCallback(() => {
-		// 只发送撤销请求给后端，由服务器控制撤销操作
-		sendUndo();
-	}, [sendUndo]);
+		if (!isConnected) return;
+
+		// 1. 先执行本地撤销操作（立即视觉反馈），只撤销当前用户的笔画
+		const strokeId = canvasRef.current?.undo(userId || undefined);
+		// 2. 发送撤销请求给后端（服务器同步）
+		if (strokeId) {
+			sendUndo(strokeId);
+		} else {
+			sendUndo();
+		}
+	}, [isConnected, sendUndo, userId]);
 
 	const handleRedo = useCallback(() => {
+		if (!isConnected) return;
+
+		// 只发送重做请求给后端，由服务器控制重做操作
 		sendRedo();
-	}, [sendRedo]);
+	}, [isConnected, sendRedo]);
 
 	// 滚动监听
 	useEffect(() => {
