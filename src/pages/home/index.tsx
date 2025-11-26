@@ -392,11 +392,6 @@ export function HomePage() {
 										功能
 									</a>
 								</li>
-								<li>
-									<a href="#" className="transition-colors hover:text-white">
-										定价
-									</a>
-								</li>
 							</ul>
 						</div>
 						<div>
