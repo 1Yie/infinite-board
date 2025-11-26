@@ -238,7 +238,7 @@ export function HomePage() {
 
 				{/* 白板容器 */}
 				<div className="relative mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6">
-					<div className="relative h-full min-h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm">
+					<div className="relative h-[600px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm">
 						{/* 装饰性网格背景 */}
 						<div
 							className="pointer-events-none absolute inset-0 opacity-[0.4]"

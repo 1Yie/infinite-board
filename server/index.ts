@@ -3,8 +3,20 @@ import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { api } from './api';
 import 'dotenv/config';
+import { db } from './db';
+import { rooms } from './db/schema';
 
 const port = process.env.PORT || 3000;
+
+// 确保默认房间存在
+await db
+	.insert(rooms)
+	.values({
+		id: 'default-room',
+		name: '默认房间',
+		ownerId: 'system',
+	})
+	.onConflictDoNothing();
 
 const app = new Elysia()
 	.use(
