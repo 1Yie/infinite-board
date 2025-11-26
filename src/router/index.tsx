@@ -7,12 +7,14 @@ import { Login } from '../pages/auth/login';
 import { Register } from '../pages/auth/register';
 import { RoomPage } from '../pages/room';
 import { HomePage } from '../pages/home';
+import { SetTitle } from '@/utils/set-title';
 
 export const router = createBrowserRouter([
 	{
 		path: '/',
 		element: (
 			<AuthProvider>
+				<SetTitle title="Infinite Board - 无限画布" />
 				<HomePage />
 			</AuthProvider>
 		),
@@ -30,11 +32,20 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: 'room',
-				element: <RoomPage />,
+				element: (
+					<>
+						<SetTitle title="Infinite Board - 房间列表" />
+						<RoomPage />
+					</>
+				),
 			},
 			{
 				path: 'room/:roomId',
-				element: <Whiteboard />,
+				element: (
+					<>
+						<Whiteboard />
+					</>
+				),
 			},
 		],
 	},

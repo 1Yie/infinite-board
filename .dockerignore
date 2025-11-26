@@ -1,0 +1,19 @@
+# 排除不必要的文件和目录
+node_modules
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+dist
+.husky
+.env
+*.log
+.DS_Store
+coverage
+.nyc_output
+.cache
+.vscode
+.idea
+*.tgz
+*.tar.gz

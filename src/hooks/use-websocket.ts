@@ -124,14 +124,14 @@ export function useWebSocket(
 					}
 				});
 
-				ws.on('error', (error) => {
+				ws.on('error', (error: Event) => {
 					console.error('WebSocket 错误:', error);
 					setIsConnected(false);
 					setIsConnecting(false);
 					socketRef.current = null;
 				});
 
-				ws.subscribe((event) => {
+				ws.subscribe((event: MessageEvent) => {
 					const message = event.data as ServerMessage;
 
 					// 过滤掉高频日志，只打印关键信息

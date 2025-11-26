@@ -2,9 +2,15 @@ import { Elysia, t } from 'elysia';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { api } from './api';
+import 'dotenv/config';
+
+const port = process.env.PORT || 3000;
+const corsOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',') || [
+	'http://localhost:5173',
+];
 
 const app = new Elysia()
-	.use(cors({ origin: ['http://localhost:5173'], credentials: true }))
+	.use(cors({ origin: corsOrigins, credentials: true }))
 	.use(
 		swagger({
 			documentation: {
@@ -37,7 +43,7 @@ const app = new Elysia()
 		},
 	})
 
-	.listen(3000);
+	.listen(port);
 
 console.log(
 	`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`

@@ -80,19 +80,14 @@ export const roomApi = {
 	 * @param password 密码（如果需要）
 	 */
 	joinRoom: async (roomId: string, password?: string): Promise<Room> => {
-		const response = await fetch(
-			`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/rooms/join`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				credentials: 'include',
-				body: JSON.stringify({ roomId, password }),
-			}
-		);
+		const { data, error } = await client.api.rooms.join.post({
+			roomId,
+			password,
+		});
 
-		const data = await response.json();
+		if (error) {
+			throw new Error(error.value?.toString() || '加入房间失败');
+		}
 
 		if (!data.success) {
 			throw new Error(data.error || '加入房间失败');

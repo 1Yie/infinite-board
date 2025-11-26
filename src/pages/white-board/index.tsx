@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { SetTitle } from '@/utils/set-title';
 
 export function Whiteboard({ roomId: roomIdProp }: { roomId?: string }) {
 	const params = useParams<{ roomId: string }>();
@@ -34,7 +35,7 @@ export function Whiteboard({ roomId: roomIdProp }: { roomId?: string }) {
 	const [coords, setCoords] = useState({ x: 0, y: 0 });
 	const [scale, setScale] = useState(1);
 
-	const [, setRoomInfo] = useState<Room | null>(null);
+	const [roomInfo, setRoomInfo] = useState<Room | null>(null);
 	const [isChecking, setIsChecking] = useState(true);
 	const [password, setPassword] = useState('');
 	const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -54,6 +55,22 @@ export function Whiteboard({ roomId: roomIdProp }: { roomId?: string }) {
 		sendRedo,
 		// sendClear
 	} = useWebSocket(authorized && isLogged === true, roomId);
+
+	useEffect(() => {
+		const fetchRoomName = async () => {
+			try {
+				const rooms = await roomApi.getRooms();
+				const room = rooms.find((r) => r.id === roomId);
+				if (room) {
+					setRoomInfo(room);
+				}
+			} catch (error) {
+				console.error('获取房间名称失败:', error);
+			}
+		};
+
+		fetchRoomName();
+	}, [roomId]);
 
 	useEffect(() => {
 		const checkRoomAccess = async () => {
@@ -239,65 +256,68 @@ export function Whiteboard({ roomId: roomIdProp }: { roomId?: string }) {
 	}
 
 	return (
-		<div className="flex h-screen flex-col overflow-hidden bg-gray-100">
-			<WhiteboardToolbar
-				currentTool={tool}
-				setCurrentTool={setTool}
-				handleUndo={handleUndo}
-				handleRedo={handleRedo}
-				currentColor={currentColor}
-				setCurrentColor={setCurrentColor}
-				currentSize={currentSize}
-				setCurrentSize={setCurrentSize}
-				isConnected={isConnected}
-			/>
+		<>
+			<SetTitle title={`Infinite Board - ${roomInfo?.name}`} />
+			<div className="flex h-screen flex-col overflow-hidden bg-gray-100">
+				<WhiteboardToolbar
+					currentTool={tool}
+					setCurrentTool={setTool}
+					handleUndo={handleUndo}
+					handleRedo={handleRedo}
+					currentColor={currentColor}
+					setCurrentColor={setCurrentColor}
+					currentSize={currentSize}
+					setCurrentSize={setCurrentSize}
+					isConnected={isConnected}
+				/>
 
-			<div className="flex flex-1 overflow-hidden">
-				<div className="shrink-0">
-					<WhiteboardSidebar
-						isConnected={isConnected}
-						isConnecting={isConnecting}
-						user={user}
-						userCount={userCount}
-						scale={scale}
-						coords={coords}
-						roomId={roomId || ''}
-					/>
-				</div>
+				<div className="flex flex-1 overflow-hidden">
+					<div className="shrink-0">
+						<WhiteboardSidebar
+							isConnected={isConnected}
+							isConnecting={isConnecting}
+							user={user}
+							userCount={userCount}
+							scale={scale}
+							coords={coords}
+							roomId={roomId || ''}
+						/>
+					</div>
 
-				<div className="relative flex-1 overflow-hidden">
-					{(isCanvasLoading || isConnecting) && (
-						<div className="bg-opacity-75 absolute inset-0 z-10 flex items-center justify-center bg-white">
-							<div className="flex flex-col items-center gap-4">
-								<div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"></div>
-								<p className="text-sm text-zinc-600">
-									{isConnecting ? '连接中...' : '加载画布内容...'}
-								</p>
+					<div className="relative flex-1 overflow-hidden">
+						{(isCanvasLoading || isConnecting) && (
+							<div className="bg-opacity-75 absolute inset-0 z-10 flex items-center justify-center bg-white">
+								<div className="flex flex-col items-center gap-4">
+									<div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"></div>
+									<p className="text-sm text-zinc-600">
+										{isConnecting ? '连接中...' : '加载画布内容...'}
+									</p>
+								</div>
 							</div>
-						</div>
-					)}
-					<WhiteboardCanvas
-						ref={canvasRef}
-						tool={tool}
-						color={currentColor}
-						size={currentSize}
-						roomId={roomId}
-						readOnly={!isConnected} // 未连接时只读
-						onStrokeFinished={handleStrokeFinished} // 画完一笔
-						onRealtimeDraw={sendDraw} // 正在画 (广播)
-						onCursorChange={setCoords} // 坐标变化
-						onScaleChange={setScale} // 缩放变化
-					/>
+						)}
+						<WhiteboardCanvas
+							ref={canvasRef}
+							tool={tool}
+							color={currentColor}
+							size={currentSize}
+							roomId={roomId}
+							readOnly={!isConnected} // 未连接时只读
+							onStrokeFinished={handleStrokeFinished} // 画完一笔
+							onRealtimeDraw={sendDraw} // 正在画 (广播)
+							onCursorChange={setCoords} // 坐标变化
+							onScaleChange={setScale} // 缩放变化
+						/>
 
-					{/* {!isConnected && (
+						{/* {!isConnected && (
 						<div className="bg-opacity-10 pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
 							<div className="rounded bg-white p-3 opacity-80 shadow">
 								正在连接
 							</div>
 						</div>
 					)} */}
+					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
