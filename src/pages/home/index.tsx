@@ -112,20 +112,20 @@ export function HomePage() {
 	const handleUndo = useCallback(() => {
 		if (!isConnected) return;
 
-		// 1. 先执行本地撤销操作（立即视觉反馈），只撤销当前用户的笔画
-		const strokeId = canvasRef.current?.undo(userId || undefined);
-		// 2. 发送撤销请求给后端（服务器同步）
+		// 首页演示：撤销最新的笔画（不区分用户）
+		const strokeId = canvasRef.current?.undo();
+		// 发送撤销请求给后端
 		if (strokeId) {
 			sendUndo(strokeId);
 		} else {
 			sendUndo();
 		}
-	}, [isConnected, sendUndo, userId]);
+	}, [isConnected, sendUndo]);
 
 	const handleRedo = useCallback(() => {
 		if (!isConnected) return;
 
-		// 只发送重做请求给后端，由服务器控制重做操作
+		// 发送重做请求给后端，由服务器控制重做操作
 		sendRedo();
 	}, [isConnected, sendRedo]);
 
