@@ -903,6 +903,7 @@ async function startNewRound(
 		currentWord: gameState.currentWord,
 		wordHint: gameState.wordHint,
 		roundStartTime: gameState.roundStartTime,
+		players: gameState.players, // 更新玩家状态，包括 hasGuessed 重置
 	});
 
 	console.log(`提示: ${wordHint}`);
