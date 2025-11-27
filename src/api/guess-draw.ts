@@ -148,25 +148,8 @@ export const guessDrawApi = {
 	 * 加入游戏房间
 	 * @param roomId 房间ID
 	 */
-	joinRoom: async (
-		roomId: string
-	): Promise<{
-		success: boolean;
-		message?: string;
-		data?: {
-			roomId: string;
-			gameState: GameState;
-		};
-	}> => {
-		const { data, error } = await client.api['guess-draw']({
-			roomId,
-		}).join.post();
-
-		if (error) {
-			throw new Error(error.value?.toString() || '加入房间失败');
-		}
-
-		return data;
+	joinRoom: (roomId: string) => {
+		return client.api['guess-draw']({ roomId }).join.post();
 	},
 
 	/**
@@ -312,10 +295,6 @@ export const guessDrawApi = {
 	},
 };
 
-// =================================================================
-// WebSocket API 导出
-// =================================================================
-
 /**
  * 1. 定义核心连接函数
  * 用于类型推导 + 实际连接
@@ -385,8 +364,16 @@ export const guessDrawWsApi = {
 	/**
 	 * 开始游戏
 	 */
-	sendGameStart: (socket: GuessDrawSocket, totalRounds: number = 3) => {
-		socket.send({ type: 'game-start', totalRounds } as ClientMessage);
+	sendGameStart: (
+		socket: GuessDrawSocket,
+		totalRounds: number = 3,
+		roundTimeLimit: number = 60
+	) => {
+		socket.send({
+			type: 'game-start',
+			totalRounds,
+			roundTimeLimit,
+		} as ClientMessage);
 	},
 
 	/**

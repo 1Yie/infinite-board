@@ -640,6 +640,9 @@ export const guessDrawRoutes = new Elysia({ prefix: '/guess-draw' })
 				const timeBonus = Math.max(0, gameState.roundTimeLimit - elapsed);
 				player.score += Math.floor(100 + timeBonus * 2);
 
+				// 保存更新后的游戏状态到数据库
+				await updateGameState(roomId, gameState);
+
 				// 检查是否所有玩家都猜对了
 				const allGuessed = gameState.players
 					.filter((p: GamePlayer) => !p.isDrawing)
@@ -715,6 +718,9 @@ export const guessDrawRoutes = new Elysia({ prefix: '/guess-draw' })
 							.map((char, index) => (index % 2 === 0 ? char : '_'));
 						gameState.wordHint = hintChars.join('');
 						gameState.roundStartTime = Date.now();
+
+						// 保存下一轮的游戏状态
+						await updateGameState(roomId, gameState);
 
 						return {
 							success: true,

@@ -84,7 +84,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 			if (cookie.auth) {
 				cookie.auth.set({
 					value: token,
-					httpOnly: false,
+					httpOnly: true,
 					maxAge: TIME_OUT,
 					path: '/',
 				});

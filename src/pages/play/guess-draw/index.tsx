@@ -70,6 +70,7 @@ export function GuessDrawLobby() {
 	};
 
 	// 列表点击加入 (直接加入房间并进入游戏)
+	// 列表点击加入
 	const handleListJoin = async (roomId: string) => {
 		setIsJoining(true);
 		setError(null);
@@ -77,21 +78,26 @@ export function GuessDrawLobby() {
 		try {
 			const response = await guessDrawApi.joinRoom(roomId);
 
-			if (response.success && response.data) {
-				// 加入成功，直接跳转到游戏页面
-				navigate(`/play/guess-draw/${response.data.roomId}`);
+			if (response.data && response.data.success && response.data.data) {
+				navigate(`/play/guess-draw/${response.data.data.roomId}`);
+			} else if (response.error) {
+				console.log('Join Error:', response.error.value);
+
+				const errData = response.error.value as { message?: string };
+
+				setError(errData.message || '加入房间失败');
 			} else {
-				setError(response.message || '加入房间失败');
+				setError('加入房间失败');
 			}
 		} catch (err) {
-			setError('加入房间失败，请检查网络');
-			console.error(err);
+			setError('网络请求失败，请检查连接');
+			console.error('System Error:', err);
 		} finally {
 			setIsJoining(false);
 		}
 	};
 
-	// 搜索 ID 直接加入 (来自 JoinGuessDrawRoom 的逻辑)
+	// 搜索 ID 直接加入
 	const handleDirectJoin = async () => {
 		if (!searchId.trim()) return;
 
@@ -99,18 +105,19 @@ export function GuessDrawLobby() {
 		setError(null);
 
 		try {
-			// 先尝试调用加入接口验证
 			const response = await guessDrawApi.joinRoom(searchId.trim());
-
-			if (response.success && response.data) {
-				// 加入成功，直接跳转到游戏页面
-				navigate(`/play/guess-draw/${response.data.roomId}`);
+			if (response.data && response.data.success && response.data.data) {
+				navigate(`/play/guess-draw/${response.data.data.roomId}`);
+			} else if (response.error) {
+				console.error('Join Error:', response.error.value);
+				const errData = response.error.value as { message?: string };
+				setError(errData.message || '加入房间失败：房间不存在或已满');
 			} else {
-				setError(response.message || '加入房间失败：房间不存在或已满');
+				setError('加入房间失败');
 			}
 		} catch (err) {
 			setError('加入请求失败，请检查网络');
-			console.error(err);
+			console.error('System Error:', err);
 		} finally {
 			setIsJoining(false);
 		}

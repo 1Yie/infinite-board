@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	plugins: [
 		react({
 			babel: {
@@ -18,4 +17,11 @@ export default defineConfig({
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
-});
+	// 生产环境移除 console 和 debugger
+	build: {
+		minify: 'esbuild',
+		esbuild: {
+			drop: mode === 'production' ? ['console', 'debugger'] : [],
+		},
+	},
+}));

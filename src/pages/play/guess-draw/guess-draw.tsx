@@ -38,6 +38,8 @@ interface WebSocketMessage {
 	winner?: boolean;
 	reason?: string;
 	winnerName?: string;
+	roundTimeLimit?: number;
+	roundStartTime?: number;
 }
 import {
 	WhiteboardCanvas,
@@ -180,22 +182,10 @@ export function GuessDrawPage() {
 						gameStateRef.current = newState; // 更新ref
 						setIsLoading(false);
 
-						// 检查房间是否已空
+						// 房间为空是正常状态，允许创建新房间
 						if (newState.players.length === 0) {
-							console.log('🏠 房间已空，自动返回大厅');
-							setChatMessages((prev) => [
-								...prev.slice(-19),
-								{
-									name: '系统',
-									msg: '房间已空，正在返回大厅...',
-									isSystem: true,
-								},
-							]);
-							// 延迟一下让用户看到消息
-							setTimeout(() => {
-								navigate('/play/guess-draw');
-							}, 1500);
-							return;
+							console.log('🏠 房间为空，等待玩家加入或创建新游戏');
+							// 不进行任何跳转，保持当前页面状态
 						}
 
 						// 身份变化日志
@@ -263,6 +253,17 @@ export function GuessDrawPage() {
 					console.log(`🎯 第 ${data.currentRound} 回合开始`);
 					console.log(`   画者: ${data.drawerUsername}`);
 					console.log(`   提示: ${data.wordHint}`);
+					console.log(`   回合时间: ${data.roundTimeLimit}秒`);
+
+					// 更新游戏状态中的回合时间和开始时间
+					setGameState((prev) => {
+						if (!prev) return prev;
+						return {
+							...prev,
+							roundTimeLimit: data.roundTimeLimit || prev.roundTimeLimit || 60,
+							roundStartTime: data.roundStartTime || prev.roundStartTime,
+						};
+					});
 
 					// 清空画布
 					canvasRef.current?.clear();
@@ -354,6 +355,24 @@ export function GuessDrawPage() {
 							isSystem: true,
 						},
 					]);
+					// 更新游戏状态中的玩家分数
+					setGameState((prev) => {
+						if (!prev) return prev;
+						const updatedPlayers = prev.players.map((player) => {
+							if (player.userId === data.userId) {
+								return {
+									...player,
+									score: data.score || player.score + (data.score || 0),
+									hasGuessed: true,
+								};
+							}
+							return player;
+						});
+						return {
+							...prev,
+							players: updatedPlayers,
+						};
+					});
 					break;
 
 				case 'guess-attempt':
@@ -449,7 +468,11 @@ export function GuessDrawPage() {
 			return;
 		}
 		console.log('🎮 发送游戏开始请求...');
-		guessDrawWsApi.sendGameStart(socketRef.current, gameState.totalRounds);
+		guessDrawWsApi.sendGameStart(
+			socketRef.current,
+			gameState.totalRounds,
+			gameState.roundTimeLimit
+		);
 	};
 
 	const handleSubmitGuess = async () => {
@@ -526,19 +549,10 @@ export function GuessDrawPage() {
 		);
 	}
 
-	// 检查房间是否已空
+	// 房间为空是正常状态，允许创建新房间
 	if (gameState.players.length === 0) {
-		console.log('🏠 房间已空，自动返回大厅');
-		// 短暂显示消息然后自动返回
-		setTimeout(() => navigate('/play/guess-draw'), 1500);
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<p className="text-lg text-gray-600">房间已空</p>
-					<p className="mt-2 text-sm text-gray-400">正在返回大厅...</p>
-				</div>
-			</div>
-		);
+		console.log('🏠 房间为空，等待玩家加入或创建新游戏');
+		// 不进行任何跳转，保持当前页面状态
 	}
 
 	const canStart = gameState.players.length >= 2;

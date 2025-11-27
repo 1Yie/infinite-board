@@ -508,6 +508,9 @@ export const gameRoute = new Elysia()
 
 							console.log(`${username} 获得 ${score} 分`);
 
+							// 保存更新后的游戏状态到数据库
+							await updateGameState(roomId, gameState);
+
 							// 清除当前回合的计时器
 							clearRoundTimer(roomId);
 
