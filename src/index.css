@@ -145,3 +145,8 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Turnstile 圆角样式 */
+.cf-turnstile iframe {
+	border-radius: 12px !important;
+}

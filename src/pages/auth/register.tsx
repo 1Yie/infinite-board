@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { toast } from 'sonner';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export function Register() {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
 	const navigate = useNavigate();
 
@@ -26,6 +28,11 @@ export function Register() {
 
 		if (password.length < 6) {
 			toast.error('密码长度至少6位');
+			return;
+		}
+
+		if (!captchaToken) {
+			toast.error('请先完成人机验证');
 			return;
 		}
 
@@ -139,6 +146,18 @@ export function Register() {
 							</div>
 						</div>
 
+						{/* Cloudflare Turnstile 验证码 */}
+						<div className="overflow-hidden rounded-lg border border-zinc-300">
+							<Turnstile
+								className="cf-turnstile"
+								siteKey={import.meta.env.VITE_SITE_KEY as string}
+								onSuccess={setCaptchaToken}
+								options={{ size: 'flexible' }}
+								onError={() => setCaptchaToken(null)}
+								onExpire={() => setCaptchaToken(null)}
+							/>
+						</div>
+
 						<div>
 							<button
 								type="button"
@@ -173,7 +192,7 @@ export function Register() {
 							{/* 特性列表 */}
 							<div className="space-y-6 pt-4">
 								<div className="flex items-start gap-4">
-									<div className="mt-1.5 flex-shrink-0">
+									<div className="mt-1.5 shrink-0">
 										<div className="h-2 w-2 rounded-full bg-zinc-700"></div>
 									</div>
 									<div className="flex-1">
@@ -188,7 +207,7 @@ export function Register() {
 								</div>
 
 								<div className="flex items-start gap-4">
-									<div className="mt-1.5 flex-shrink-0">
+									<div className="mt-1.5 shrink-0">
 										<div className="h-2 w-2 rounded-full bg-zinc-700"></div>
 									</div>
 									<div className="flex-1">
@@ -203,7 +222,7 @@ export function Register() {
 								</div>
 
 								<div className="flex items-start gap-4">
-									<div className="mt-1.5 flex-shrink-0">
+									<div className="mt-1.5 shrink-0">
 										<div className="h-2 w-2 rounded-full bg-zinc-700"></div>
 									</div>
 									<div className="flex-1">

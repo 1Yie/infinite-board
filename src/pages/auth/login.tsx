@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/auth-context';
 import { toast } from 'sonner';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export function Login() {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
 	const { login } = useAuth();
 
@@ -14,6 +16,11 @@ export function Login() {
 
 		if (!username.trim() || !password.trim()) {
 			toast.error('请输入用户名和密码');
+			return;
+		}
+
+		if (!captchaToken) {
+			toast.error('请先完成人机验证');
 			return;
 		}
 
@@ -180,6 +187,18 @@ export function Login() {
 									disabled={isLoading}
 								/>
 							</div>
+						</div>
+
+						{/* Cloudflare Turnstile 验证码 */}
+						<div className="overflow-hidden rounded-lg border border-zinc-300">
+							<Turnstile
+								className="cf-turnstile"
+								siteKey={import.meta.env.VITE_SITE_KEY as string}
+								onSuccess={setCaptchaToken}
+								options={{ size: 'flexible' }}
+								onError={() => setCaptchaToken(null)}
+								onExpire={() => setCaptchaToken(null)}
+							/>
 						</div>
 
 						<div>
