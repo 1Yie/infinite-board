@@ -158,6 +158,7 @@ export const router = createBrowserRouter([
 		path: '*',
 		element: (
 			<AuthProvider>
+				<SetTitle title="Infinite Brain - Error(404)" />
 				<NotFoundPage />
 			</AuthProvider>
 		),
