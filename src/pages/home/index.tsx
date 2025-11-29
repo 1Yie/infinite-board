@@ -818,7 +818,6 @@ export function HomePage() {
 						</p>
 					</div>
 				</div>
-				ni
 			</footer>
 		</div>
 	);

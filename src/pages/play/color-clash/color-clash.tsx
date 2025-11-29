@@ -93,7 +93,7 @@ function ColorCanvas({
 	const throttledMoveRef = useRef(
 		throttle((data: { x: number; y: number; color: string; size: number }) => {
 			onMove(data);
-		}, 60)
+		}, 0)
 	);
 
 	// 辅助函数：绘制线条（解决点点状问题的核心）
@@ -253,8 +253,9 @@ function ColorCanvas({
 			Math.pow((currentPlayer.x || 0) - localPlayerPosRef.current.x, 2) +
 				Math.pow((currentPlayer.y || 0) - localPlayerPosRef.current.y, 2)
 		);
-		// 阈值设为 50px，防止抽搐
-		if (dist > 50) {
+		// 阈值，防止抽搐
+		const threshold = 1000;
+		if (dist > threshold) {
 			const newPos = {
 				x: currentPlayer.x ?? localPlayerPosRef.current.x,
 				y: currentPlayer.y ?? localPlayerPosRef.current.y,
@@ -275,7 +276,7 @@ function ColorCanvas({
 			if (
 				Math.sqrt(
 					Math.pow(targetX - current.x, 2) + Math.pow(targetY - current.y, 2)
-				) > 50
+				) > threshold
 			) {
 				playersRenderPositionsRef.current.set(player.userId, {
 					x: targetX,
