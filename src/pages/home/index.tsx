@@ -21,6 +21,9 @@ import {
 	Gamepad2,
 	Users,
 } from 'lucide-react';
+import TextType from '@/components/TextType';
+import AnimatedContent from '@/components/AnimatedContent';
+import FadeContent from '@/components/FadeContent';
 
 function FeatureCard({
 	icon: Icon,
@@ -171,8 +174,8 @@ export function HomePage() {
 	// 公告滚动定时器
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setCurrentAnnouncement((prev) => (prev + 1) % 2); // 在2个公告之间切换
-		}, 4000); // 每4秒切换一次
+			setCurrentAnnouncement((prev) => (prev + 1) % 2); // 在公告之间切换
+		}, 8000);
 
 		return () => clearInterval(interval);
 	}, []);
@@ -272,32 +275,51 @@ export function HomePage() {
 							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
 							<span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
 						</span>
-						<span
-							className="cursor-pointer transition-all duration-500"
-							onClick={() => {
-								if (currentAnnouncement === 0) {
-									navigate('/room/guess-draw');
-								} else {
-									navigate('/room/color-clash');
-								}
-							}}
+						<FadeContent
+							key={currentAnnouncement}
+							blur={true}
+							duration={650}
+							easing="ease-out"
+							initialOpacity={0}
 						>
-							{currentAnnouncement === 0
-								? '《你猜我画》现已上线！立刻体验 →'
-								: '全新上线《颜色对抗》！立刻尝试 →'}
-						</span>
+							<span
+								className="cursor-pointer transition-all duration-500"
+								onClick={() => {
+									if (currentAnnouncement === 0) {
+										navigate('/room/guess-draw');
+									} else {
+										navigate('/room/color-clash');
+									}
+								}}
+							>
+								{currentAnnouncement === 0
+									? '《你猜我画》现已上线！立刻体验 →'
+									: '全新上线《颜色对抗》！立刻尝试 →'}
+							</span>
+						</FadeContent>
 					</div>
 					<h1 className="mb-4 text-2xl font-extrabold tracking-tight text-zinc-600 sm:text-4xl">
 						Infinite Brain
 					</h1>
 					<h1 className="text-3xl font-extrabold tracking-tight text-zinc-800 sm:text-5xl">
 						让创意{' '}
-						<span className="text-zinc-400 line-through decoration-zinc-800 decoration-2">
-							受限
-						</span>
-						<span className="ml-2 bg-linear-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-							无限延伸
-						</span>
+						<TextType
+							text={[
+								'永无止境',
+								'不再受限',
+								'无限进步',
+								'点亮未来',
+								'突破想象的边界',
+								'像光一样扩散',
+								'把灵感变成现实',
+							]}
+							className="bg-linear-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
+							typingSpeed={175}
+							deletingSpeed={130}
+							pauseDuration={2300}
+							showCursor={true}
+							cursorCharacter="|"
+						/>
 					</h1>
 				</div>
 
@@ -347,316 +369,324 @@ export function HomePage() {
 					className="absolute top-full right-0 left-0 h-1"
 				></div>
 
-				{/* 白板容器 */}
-				<div className="relative mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6">
-					{/* 白板演示 */}
-					<div
-						className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 0 ? 'block' : 'hidden'}`}
-					>
-						{/* 装饰性网格背景 */}
+				<AnimatedContent
+					distance={150}
+					direction="vertical"
+					reverse={false}
+					duration={1}
+					ease="power3.out"
+				>
+					{/* 白板容器 */}
+					<div className="relative mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6">
+						{/* 白板演示 */}
 						<div
-							className="pointer-events-none absolute inset-0 opacity-[0.4]"
-							style={{
-								backgroundImage:
-									'radial-gradient(#cbd5e1 1px, transparent 1px)',
-								backgroundSize: '24px 24px',
-							}}
-						></div>
-
-						<WhiteboardCanvas
-							ref={canvasRef}
-							tool={tool}
-							color={color}
-							size={size}
-							roomId={roomId}
-							readOnly={!isConnected}
-							onStrokeFinished={handleFinish}
-							onRealtimeDraw={sendDraw}
-						/>
-
-						{/* 连接状态提示 */}
-						{!isConnected && (
-							<div className="absolute top-4 right-4 flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-800">
-								<div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"></div>
-								正在连接服务器...
-							</div>
-						)}
-
-						{/* 工具栏位置 */}
-						<div className="absolute right-0 bottom-0 left-0">
-							<div className="bordershadow-lg rounded-xl backdrop-blur supports-backdrop-filter:bg-white/60">
-								<WhiteboardToolbar
-									currentTool={tool}
-									setCurrentTool={setTool}
-									handleUndo={handleUndo}
-									handleRedo={handleRedo}
-									currentColor={color}
-									setCurrentColor={setColor}
-									currentSize={size}
-									setCurrentSize={setSize}
-									isConnected={isConnected}
-								/>
-							</div>
-						</div>
-					</div>
-
-					{/* 你猜我画演示 */}
-					<div
-						className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 1 ? 'block' : 'hidden'}`}
-					>
-						{/* 你猜我画布局 - 参考真实页面 */}
-						<div className="flex h-full gap-4 p-4">
-							{/* 左侧边栏 - 状态面板 */}
-							<div className="hidden w-64 flex-col gap-4 xl:flex">
-								{/* 状态面板 */}
-								<div className="flex flex-none flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-									<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
-										<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-											状态
-										</h3>
-									</div>
-									<div className="p-3">
-										<div className="space-y-3">
-											<div className="rounded border border-slate-100 bg-slate-50 p-2 text-center">
-												<p className="text-xs text-zinc-500">等待开始</p>
-												<p className="mt-1 text-[10px] text-zinc-400">
-													需至少2人
-												</p>
-											</div>
-											<div className="text-center">
-												<span className="font-mono text-2xl font-bold text-zinc-800">
-													45
-												</span>
-												<span className="mt-1 block text-[10px] text-zinc-400">
-													剩余时间
-												</span>
-											</div>
-											<div className="rounded border border-blue-100 bg-blue-50 p-2 text-center">
-												<div className="mb-1 text-[10px] text-zinc-400">
-													提示
-												</div>
-												<div className="font-mono text-sm tracking-widest text-zinc-800">
-													_ _ _ _
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								{/* 玩家列表 */}
-								<div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-									<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
-										<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-											排行榜
-										</h3>
-									</div>
-									<div className="flex-1 space-y-1 overflow-y-auto p-2">
-										{[
-											{ name: '玩家A', score: 150, isDrawing: false },
-											{ name: '玩家B', score: 120, isDrawing: true },
-											{ name: '玩家C', score: 90, isDrawing: false },
-										].map((player, idx) => (
-											<div
-												key={idx}
-												className={`flex items-center justify-between rounded p-2 text-xs transition-colors ${
-													player.isDrawing
-														? 'border border-blue-100 bg-blue-50'
-														: 'border border-transparent hover:bg-zinc-50'
-												}`}
-											>
-												<div className="flex min-w-0 items-center gap-2">
-													<div className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-														<CircleUser className="h-4 w-4" />
-													</div>
-													<div className="flex min-w-0 flex-col">
-														<span className="truncate text-xs font-medium text-zinc-600">
-															{player.name}
-														</span>
-														{player.isDrawing && (
-															<span className="flex items-center gap-1 text-[9px] text-blue-500">
-																<Pencil className="h-3 w-3" /> 正在画
-															</span>
-														)}
-													</div>
-												</div>
-												<div className="text-right">
-													<div className="font-mono font-bold text-zinc-700">
-														{player.score}
-													</div>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-							</div>
-
-							{/* 中间：画布区域 */}
-							<div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-								<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
-									<div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
-										<Pencil className="h-4 w-4" /> 画布
-									</div>
-								</div>
-								<div className="relative flex-1 cursor-crosshair overflow-hidden bg-white">
-									<div className="absolute inset-0 flex items-center justify-center">
-										<div className="text-center">
-											<Clock className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
-											<h3 className="text-sm font-semibold text-zinc-900">
-												画板区域
-											</h3>
-											<p className="text-xs text-zinc-500">等待游戏开始</p>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							{/* 右侧：聊天区域 */}
-							<div className="flex w-80 flex-none flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm lg:flex">
-								<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
-									<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-										<MessageSquare className="h-4 w-4" /> 消息
-									</h3>
-								</div>
-								<div className="flex-1 space-y-2 overflow-y-auto bg-white p-3">
-									<div className="flex flex-col items-center">
-										<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
-											游戏开始！
-										</span>
-									</div>
-									<div className="flex flex-col items-start">
-										<span className="mb-0.5 px-1 text-[9px] text-zinc-400">
-											玩家A
-										</span>
-										<div className="max-w-[90%] rounded-2xl rounded-tl-none bg-zinc-100 px-2 py-1 text-[10px] text-zinc-800">
-											这是一只猫？
-										</div>
-									</div>
-									<div className="flex flex-col items-start">
-										<span className="mb-0.5 px-1 text-[9px] text-zinc-400">
-											玩家B
-										</span>
-										<div className="max-w-[90%] rounded-2xl rounded-tl-none bg-zinc-100 px-2 py-1 text-[10px] text-zinc-800">
-											不对，再猜猜
-										</div>
-									</div>
-									<div className="flex flex-col items-center">
-										<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
-											游戏结束！
-										</span>
-									</div>
-									<div className="flex flex-col items-center">
-										<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
-											玩家A 获胜！🎉
-										</span>
-									</div>
-								</div>
-								<div className="flex-none border-t border-zinc-100 bg-zinc-50 p-2">
-									<div className="relative">
-										<input
-											type="text"
-											placeholder="输入答案..."
-											className="h-7 w-full rounded border border-zinc-200 bg-white px-2 pr-8 text-xs focus:border-zinc-400 focus:outline-none"
-											disabled
-										/>
-										<button className="absolute top-1 right-1 p-0.5 text-zinc-400 disabled:opacity-30">
-											<Send className="h-4 w-4" />
-										</button>
-									</div>
-									<div className="mt-1 text-center text-[9px] text-zinc-400">
-										直接输入答案即可提交
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* 统一的触发点 - 用于吸顶导航 */}
-						<div className="absolute right-0 bottom-0 left-0">
-							<div className="h-12"></div>
-						</div>
-					</div>
-
-					{/* 颜色对抗演示 */}
-					<div
-						className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 2 ? 'block' : 'hidden'}`}
-					>
-						{/* 颜色对抗布局 - 画布占满，右上角玩家列表 */}
-						<div className="relative h-full w-full overflow-hidden rounded-2xl bg-white">
-							{/* 网格背景 */}
+							className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 0 ? 'block' : 'hidden'}`}
+						>
+							{/* 装饰性网格背景 */}
 							<div
-								className="absolute inset-0 opacity-[0.3]"
+								className="pointer-events-none absolute inset-0 opacity-[0.4]"
 								style={{
 									backgroundImage:
-										'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px)',
+										'radial-gradient(#cbd5e1 1px, transparent 1px)',
+									backgroundSize: '24px 24px',
 								}}
+							></div>
+
+							<WhiteboardCanvas
+								ref={canvasRef}
+								tool={tool}
+								color={color}
+								size={size}
+								roomId={roomId}
+								readOnly={!isConnected}
+								onStrokeFinished={handleFinish}
+								onRealtimeDraw={sendDraw}
 							/>
 
-							{/* 画布内容区域 */}
-							<div className="absolute inset-0 flex items-center justify-center">
-								<div className="text-center">
-									<Gamepad2 className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
-									<h3 className="text-sm font-semibold text-zinc-900">
-										等待游戏开始
-									</h3>
+							{/* 连接状态提示 */}
+							{!isConnected && (
+								<div className="absolute top-4 right-4 flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-800">
+									<div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"></div>
+									正在连接服务器...
+								</div>
+							)}
 
-									<p className="mt-2 text-xs text-zinc-400">
-										用键盘 WASD 或方向键移动，占领领土！
-									</p>
+							{/* 工具栏位置 */}
+							<div className="absolute right-0 bottom-0 left-0">
+								<div className="bordershadow-lg rounded-xl backdrop-blur supports-backdrop-filter:bg-white/60">
+									<WhiteboardToolbar
+										currentTool={tool}
+										setCurrentTool={setTool}
+										handleUndo={handleUndo}
+										handleRedo={handleRedo}
+										currentColor={color}
+										setCurrentColor={setColor}
+										currentSize={size}
+										setCurrentSize={setSize}
+										isConnected={isConnected}
+									/>
 								</div>
 							</div>
+						</div>
 
-							{/* 模拟玩家位置指示器 */}
-							<div className="absolute top-8 left-8 h-3 w-3 rounded-full bg-red-500 shadow-lg"></div>
-							<div className="absolute top-12 right-12 h-3 w-3 rounded-full bg-green-500 shadow-lg"></div>
-							<div className="absolute bottom-8 left-12 h-3 w-3 rounded-full bg-blue-500 shadow-lg"></div>
-							<div className="absolute right-8 bottom-12 h-3 w-3 rounded-full bg-yellow-500 shadow-lg"></div>
-
-							{/* 右上角玩家列表 */}
-							<div className="absolute top-4 right-4 z-10">
-								<div className="w-48 rounded-lg border border-gray-200 bg-white/95 shadow-lg backdrop-blur-sm">
-									<div className="rounded-t-lg border-b border-gray-100 bg-gray-50/50 px-3 py-2">
-										<h3 className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-											<Users className="h-4 w-4" />
-											玩家列表
-										</h3>
+						{/* 你猜我画演示 */}
+						<div
+							className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 1 ? 'block' : 'hidden'}`}
+						>
+							{/* 你猜我画布局 - 参考真实页面 */}
+							<div className="flex h-full gap-4 p-4">
+								{/* 左侧边栏 - 状态面板 */}
+								<div className="hidden w-64 flex-col gap-4 xl:flex">
+									{/* 状态面板 */}
+									<div className="flex flex-none flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+										<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
+											<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
+												状态
+											</h3>
+										</div>
+										<div className="p-3">
+											<div className="space-y-3">
+												<div className="rounded border border-slate-100 bg-slate-50 p-2 text-center">
+													<p className="text-xs text-zinc-500">等待开始</p>
+													<p className="mt-1 text-[10px] text-zinc-400">
+														需至少2人
+													</p>
+												</div>
+												<div className="text-center">
+													<span className="font-mono text-2xl font-bold text-zinc-800">
+														45
+													</span>
+													<span className="mt-1 block text-[10px] text-zinc-400">
+														剩余时间
+													</span>
+												</div>
+												<div className="rounded border border-blue-100 bg-blue-50 p-2 text-center">
+													<div className="mb-1 text-[10px] text-zinc-400">
+														提示
+													</div>
+													<div className="font-mono text-sm tracking-widest text-zinc-800">
+														_ _ _ _
+													</div>
+												</div>
+											</div>
+										</div>
 									</div>
-									<div className="max-h-48 overflow-y-auto p-2">
-										<div className="space-y-1">
+
+									{/* 玩家列表 */}
+									<div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+										<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
+											<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
+												排行榜
+											</h3>
+										</div>
+										<div className="flex-1 space-y-1 overflow-y-auto p-2">
 											{[
-												{ name: '玩家A', color: '#ff0000', score: 1250 },
-												{ name: '玩家B', color: '#00ff00', score: 980 },
-												{ name: '玩家C', color: '#0000ff', score: 750 },
-												{ name: '玩家D', color: '#ffff00', score: 620 },
+												{ name: '玩家A', score: 150, isDrawing: false },
+												{ name: '玩家B', score: 120, isDrawing: true },
+												{ name: '玩家C', score: 90, isDrawing: false },
 											].map((player, idx) => (
 												<div
 													key={idx}
-													className="flex items-center justify-between rounded bg-gray-50 p-2 text-xs transition-colors hover:bg-gray-100"
+													className={`flex items-center justify-between rounded p-2 text-xs transition-colors ${
+														player.isDrawing
+															? 'border border-blue-100 bg-blue-50'
+															: 'border border-transparent hover:bg-zinc-50'
+													}`}
 												>
 													<div className="flex min-w-0 items-center gap-2">
-														<div
-															className="h-3 w-3 shrink-0 rounded-full border border-gray-300"
-															style={{ backgroundColor: player.color }}
-														/>
-														<span className="truncate text-xs font-medium text-gray-700">
-															{player.name}
-														</span>
+														<div className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+															<CircleUser className="h-4 w-4" />
+														</div>
+														<div className="flex min-w-0 flex-col">
+															<span className="truncate text-xs font-medium text-zinc-600">
+																{player.name}
+															</span>
+															{player.isDrawing && (
+																<span className="flex items-center gap-1 text-[9px] text-blue-500">
+																	<Pencil className="h-3 w-3" /> 正在画
+																</span>
+															)}
+														</div>
 													</div>
-													<span className="ml-2 shrink-0 font-mono text-xs font-bold text-gray-600">
-														{player.score}
-													</span>
+													<div className="text-right">
+														<div className="font-mono font-bold text-zinc-700">
+															{player.score}
+														</div>
+													</div>
 												</div>
 											))}
 										</div>
 									</div>
 								</div>
+
+								{/* 中间：画布区域 */}
+								<div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+									<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
+										<div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+											<Pencil className="h-4 w-4" /> 画布
+										</div>
+									</div>
+									<div className="relative flex-1 cursor-crosshair overflow-hidden bg-white">
+										<div className="absolute inset-0 flex items-center justify-center">
+											<div className="text-center">
+												<Clock className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
+												<h3 className="text-sm font-semibold text-zinc-900">
+													画板区域
+												</h3>
+												<p className="text-xs text-zinc-500">等待游戏开始</p>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								{/* 右侧：聊天区域 */}
+								<div className="hidden w-80 flex-none flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm lg:flex">
+									<div className="flex h-10 flex-none items-center justify-between border-b border-zinc-100 bg-zinc-50 px-3">
+										<h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
+											<MessageSquare className="h-4 w-4" /> 消息
+										</h3>
+									</div>
+									<div className="flex-1 space-y-2 overflow-y-auto bg-white p-3">
+										<div className="flex flex-col items-center">
+											<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
+												游戏开始！
+											</span>
+										</div>
+										<div className="flex flex-col items-start">
+											<span className="mb-0.5 px-1 text-[9px] text-zinc-400">
+												玩家A
+											</span>
+											<div className="max-w-[90%] rounded-2xl rounded-tl-none bg-zinc-100 px-2 py-1 text-[10px] text-zinc-800">
+												这是一只猫？
+											</div>
+										</div>
+										<div className="flex flex-col items-start">
+											<span className="mb-0.5 px-1 text-[9px] text-zinc-400">
+												玩家B
+											</span>
+											<div className="max-w-[90%] rounded-2xl rounded-tl-none bg-zinc-100 px-2 py-1 text-[10px] text-zinc-800">
+												不对，再猜猜
+											</div>
+										</div>
+										<div className="flex flex-col items-center">
+											<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
+												游戏结束！
+											</span>
+										</div>
+										<div className="flex flex-col items-center">
+											<span className="my-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[9px] text-zinc-500">
+												玩家A 获胜！🎉
+											</span>
+										</div>
+									</div>
+									<div className="flex-none border-t border-zinc-100 bg-zinc-50 p-2">
+										<div className="relative">
+											<input
+												type="text"
+												placeholder="输入答案..."
+												className="h-7 w-full rounded border border-zinc-200 bg-white px-2 pr-8 text-xs focus:border-zinc-400 focus:outline-none"
+												disabled
+											/>
+											<button className="absolute top-1 right-1 p-0.5 text-zinc-400 disabled:opacity-30">
+												<Send className="h-4 w-4" />
+											</button>
+										</div>
+										<div className="mt-1 text-center text-[9px] text-zinc-400">
+											直接输入答案即可提交
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* 统一的触发点 - 用于吸顶导航 */}
+							<div className="absolute right-0 bottom-0 left-0">
+								<div className="h-12"></div>
 							</div>
 						</div>
 
-						{/* 统一的触发点 - 用于吸顶导航 */}
-						<div className="absolute right-0 bottom-0 left-0">
-							<div className="h-12"></div>
+						{/* 颜色对抗演示 */}
+						<div
+							className={`relative h-[500px] overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm ${currentSlide === 2 ? 'block' : 'hidden'}`}
+						>
+							{/* 颜色对抗布局 - 画布占满，右上角玩家列表 */}
+							<div className="relative h-full w-full overflow-hidden rounded-2xl bg-white">
+								{/* 网格背景 */}
+								<div
+									className="absolute inset-0 opacity-[0.3]"
+									style={{
+										backgroundImage:
+											'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px)',
+									}}
+								/>
+
+								{/* 画布内容区域 */}
+								<div className="absolute inset-0 flex items-center justify-center">
+									<div className="text-center">
+										<Gamepad2 className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
+										<h3 className="text-sm font-semibold text-zinc-900">
+											等待游戏开始
+										</h3>
+
+										<p className="mt-2 text-xs text-zinc-400">
+											用键盘 WASD 或方向键移动，占领领土！
+										</p>
+									</div>
+								</div>
+
+								{/* 模拟玩家位置指示器 */}
+								<div className="absolute top-8 left-8 h-3 w-3 rounded-full bg-red-500 shadow-lg"></div>
+								<div className="absolute top-12 right-12 h-3 w-3 rounded-full bg-green-500 shadow-lg"></div>
+								<div className="absolute bottom-8 left-12 h-3 w-3 rounded-full bg-blue-500 shadow-lg"></div>
+								<div className="absolute right-8 bottom-12 h-3 w-3 rounded-full bg-yellow-500 shadow-lg"></div>
+
+								{/* 右上角玩家列表 */}
+								<div className="absolute top-4 right-4 z-10">
+									<div className="w-48 rounded-lg border border-gray-200 bg-white/95 shadow-lg backdrop-blur-sm">
+										<div className="rounded-t-lg border-b border-gray-100 bg-gray-50/50 px-3 py-2">
+											<h3 className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+												<Users className="h-4 w-4" />
+												玩家列表
+											</h3>
+										</div>
+										<div className="max-h-48 overflow-y-auto p-2">
+											<div className="space-y-1">
+												{[
+													{ name: '玩家A', color: '#ff0000', score: 1250 },
+													{ name: '玩家B', color: '#00ff00', score: 980 },
+													{ name: '玩家C', color: '#0000ff', score: 750 },
+													{ name: '玩家D', color: '#ffff00', score: 620 },
+												].map((player, idx) => (
+													<div
+														key={idx}
+														className="flex items-center justify-between rounded bg-gray-50 p-2 text-xs transition-colors hover:bg-gray-100"
+													>
+														<div className="flex min-w-0 items-center gap-2">
+															<div
+																className="h-3 w-3 shrink-0 rounded-full border border-gray-300"
+																style={{ backgroundColor: player.color }}
+															/>
+															<span className="truncate text-xs font-medium text-gray-700">
+																{player.name}
+															</span>
+														</div>
+														<span className="ml-2 shrink-0 font-mono text-xs font-bold text-gray-600">
+															{player.score}
+														</span>
+													</div>
+												))}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* 统一的触发点 - 用于吸顶导航 */}
+							<div className="absolute right-0 bottom-0 left-0">
+								<div className="h-12"></div>
+							</div>
 						</div>
 					</div>
-				</div>
+				</AnimatedContent>
 			</section>
 
 			{/* 特性介绍 */}
@@ -794,7 +824,7 @@ export function HomePage() {
 								</li>
 							</ul>
 						</div>
-						<div>
+						<div className="hidden">
 							<h4 className="mb-4 text-sm font-semibold">关注我们</h4>
 							<div className="flex space-x-4">
 								<a
