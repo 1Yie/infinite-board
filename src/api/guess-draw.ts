@@ -79,10 +79,6 @@ export interface GetCurrentWordResponse {
 	};
 }
 
-// =================================================================
-// HTTP API 导出
-// =================================================================
-
 export const guessDrawApi = {
 	/**
 	 * 获取词库
@@ -298,7 +294,7 @@ export const guessDrawApi = {
 };
 
 /**
- * 1. 定义核心连接函数
+ * 定义核心连接函数
  * 用于类型推导 + 实际连接
  */
 const createConnection = (roomId: string) => {
@@ -308,17 +304,17 @@ const createConnection = (roomId: string) => {
 };
 
 /**
- * 2. 提取 Socket 类型
+ * 提取 Socket 类型
  */
 type GuessDrawSocket = ReturnType<typeof createConnection>;
 
 /**
- * 3. 提取消息类型 (从 Socket 的 send 方法参数中提取)
+ * 提取消息类型 (从 Socket 的 send 方法参数中提取)
  */
 type ClientMessage = Parameters<GuessDrawSocket['send']>[0];
 
 /**
- * 4. 提取 Draw 消息类型 (给外部组件使用)
+ * 提取 Draw 消息类型 (给外部组件使用)
  */
 export type DrawMessage = Extract<ClientMessage, { type: 'draw' }>;
 

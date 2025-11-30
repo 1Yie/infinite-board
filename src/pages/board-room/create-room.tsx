@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { roomApi } from '@/api/room';
-import { SetTitle } from '@/utils/set-title';
 import { ArrowLeft, Plus, Loader2, Pencil, Lock, Users } from 'lucide-react';
 
 export function CreateWhiteboardRoom() {
@@ -67,15 +66,13 @@ export function CreateWhiteboardRoom() {
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
-			<SetTitle title="创建白板房间" />
-
 			<div className="animate-in fade-in zoom-in-95 w-full max-w-lg duration-300">
 				{/* 头部标题 */}
 				<div className="mb-6 text-center">
 					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white shadow-lg">
 						<Pencil className="h-6 w-6" />
 					</div>
-					<h1 className="text-2xl font-bold text-gray-900">创建白板房间</h1>
+					<h1 className="text-2xl font-bold text-gray-900">创建无限画布房间</h1>
 					<p className="mt-2 text-sm text-gray-500">
 						创建一个协作空间，与朋友一起绘制创意
 					</p>
@@ -97,7 +94,7 @@ export function CreateWhiteboardRoom() {
 								htmlFor="name"
 								className="flex items-center gap-2 text-base font-semibold text-gray-800"
 							>
-								<Pencil className="h-4 w-4 text-gray-500" />
+								<Plus className="h-4 w-4 text-gray-500" />
 								房间名称
 							</Label>
 							<div className="mt-2">
@@ -163,9 +160,6 @@ export function CreateWhiteboardRoom() {
 										className="mt-1"
 										required
 									/>
-									<p className="mt-1 text-xs text-gray-500">
-										只有知道密码的用户才能加入此房间
-									</p>
 								</div>
 							)}
 						</div>

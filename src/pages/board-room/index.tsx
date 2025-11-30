@@ -170,7 +170,7 @@ export function WhiteboardPage() {
 								/>
 							</svg>
 							<h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-								白板房间
+								无限画布
 							</h1>
 						</div>
 					</div>

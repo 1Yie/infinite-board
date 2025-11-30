@@ -53,7 +53,7 @@ export const wsApi = {
 	/**
 	 * 辅助函数：发送重做操作
 	 */
-	sendRedo: (connection: BoardSocket, stroke?: any) => {
+	sendRedo: (connection: BoardSocket, stroke?: SingleMessage['data']) => {
 		connection.send({
 			type: 'redo',
 			data: stroke,

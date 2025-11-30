@@ -269,7 +269,7 @@ export function Whiteboard({ roomId: roomIdProp }: { roomId?: string }) {
 
 	return (
 		<>
-			<SetTitle title={`白板 - ${roomInfo?.name}`} />
+			<SetTitle title={`无限画布 - ${roomInfo?.name}`} />
 			<div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
 				<WhiteboardToolbar
 					currentTool={tool}

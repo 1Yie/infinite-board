@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { colorClashApi } from '@/api/color-clash';
-import { toast } from 'sonner';
 import {
 	ArrowLeft,
 	Gamepad2,
@@ -13,6 +12,7 @@ import {
 	Users,
 	Clock,
 	Plus,
+	Lock,
 } from 'lucide-react';
 
 export function CreateColorClashRoom() {
@@ -33,32 +33,32 @@ export function CreateColorClashRoom() {
 		e.preventDefault();
 
 		if (!formData.name.trim()) {
-			toast.error('请输入房间名称');
+			setError('请输入房间名称');
 			return;
 		}
 
 		if (formData.maxPlayers < 2 || formData.maxPlayers > 16) {
-			toast.error('玩家数量必须在2-16之间');
+			setError('玩家数量必须在2-16之间');
 			return;
 		}
 
 		if (formData.gameTime < 60 || formData.gameTime > 1800) {
-			toast.error('游戏时长必须在1-30分钟之间');
+			setError('游戏时长必须在1-30分钟之间');
 			return;
 		}
 
 		if (formData.canvasWidth < 400 || formData.canvasWidth > 2000) {
-			toast.error('画布宽度必须在400-2000之间');
+			setError('画布宽度必须在400-2000之间');
 			return;
 		}
 
 		if (formData.canvasHeight < 300 || formData.canvasHeight > 1500) {
-			toast.error('画布高度必须在300-1500之间');
+			setError('画布高度必须在300-1500之间');
 			return;
 		}
 
 		if (formData.isPrivate && !formData.password.trim()) {
-			toast.error('私密房间必须设置密码');
+			setError('私密房间必须设置密码');
 			return;
 		}
 
@@ -77,18 +77,15 @@ export function CreateColorClashRoom() {
 			});
 
 			if (response.success && response.data) {
-				toast.success('房间创建成功');
 				navigate(`/room/color-clash/${response.data.id}`);
 			} else {
 				const errorMessage = response.error?.message || '创建房间失败';
 				setError(errorMessage);
-				toast.error(errorMessage);
 			}
 		} catch (error) {
 			console.error('创建房间失败:', error);
 			const errorMessage = '创建房间失败，请稍后重试';
 			setError(errorMessage);
-			toast.error(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}
@@ -259,26 +256,40 @@ export function CreateColorClashRoom() {
 						</div>
 
 						{/* 私密房间设置 */}
-						<div className="space-y-3">
-							<div className="flex items-center space-x-2">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<Label
+									htmlFor="isPrivate"
+									className="flex items-center gap-2 text-base font-semibold text-gray-800"
+								>
+									<Lock className="h-4 w-4 text-gray-500" />
+									隐私设置
+								</Label>
+							</div>
+
+							<div className="flex items-center space-x-3">
 								<Checkbox
 									id="isPrivate"
 									checked={formData.isPrivate}
 									onCheckedChange={(checked) =>
 										handleInputChange('isPrivate', !!checked)
 									}
+									className="h-5 w-5 rounded-sm"
 								/>
-								<Label
+								<label
 									htmlFor="isPrivate"
-									className="text-base font-semibold text-gray-800"
+									className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 								>
-									私密房间
-								</Label>
+									设为私密房间
+								</label>
 							</div>
 
 							{formData.isPrivate && (
-								<div className="space-y-2">
-									<Label htmlFor="password" className="text-sm text-gray-600">
+								<div className="mt-2">
+									<Label
+										htmlFor="password"
+										className="text-sm font-medium text-gray-700"
+									>
 										房间密码
 									</Label>
 									<Input
@@ -289,6 +300,7 @@ export function CreateColorClashRoom() {
 										onChange={(e) =>
 											handleInputChange('password', e.target.value)
 										}
+										className="mt-1"
 										required
 									/>
 								</div>

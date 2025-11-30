@@ -66,7 +66,7 @@ export const router = createBrowserRouter([
 				path: 'room/whiteboard',
 				element: (
 					<>
-						<SetTitle title="白板 - 房间列表" />
+						<SetTitle title="无限画布 - 房间列表" />
 						<WhiteboardPage />
 					</>
 				),
@@ -75,7 +75,7 @@ export const router = createBrowserRouter([
 				path: 'room/whiteboard/create',
 				element: (
 					<>
-						<SetTitle title="白板 - 创建房间" />
+						<SetTitle title="无限画布 - 创建房间" />
 						<CreateWhiteboardRoom />
 					</>
 				),
@@ -127,7 +127,7 @@ export const router = createBrowserRouter([
 				path: 'room/color-clash/create',
 				element: (
 					<>
-						<SetTitle title="创建颜色对抗房间" />
+						<SetTitle title="颜色对抗 - 创建房间" />
 						<CreateColorClashRoom />
 					</>
 				),
@@ -136,7 +136,6 @@ export const router = createBrowserRouter([
 				path: 'room/color-clash/:roomId',
 				element: (
 					<>
-						<SetTitle title="颜色对抗" />
 						<ColorClash />
 					</>
 				),

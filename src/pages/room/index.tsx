@@ -195,7 +195,7 @@ export function RoomPage() {
 									className="w-full"
 									size="lg"
 								>
-									进入白板房间
+									进入无限画布
 								</Button>
 							</div>
 						</CardContent>

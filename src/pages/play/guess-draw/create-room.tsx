@@ -14,6 +14,7 @@ import {
 	Gamepad2,
 	Settings2,
 	Users,
+	Lock,
 } from 'lucide-react';
 
 export function CreateGuessDrawRoom() {
@@ -77,9 +78,9 @@ export function CreateGuessDrawRoom() {
 					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white shadow-lg">
 						<Gamepad2 className="h-6 w-6" />
 					</div>
-					<h1 className="text-2xl font-bold text-gray-900">创建游戏房间</h1>
+					<h1 className="text-2xl font-bold text-gray-900">创建你猜我画房间</h1>
 					<p className="mt-2 text-sm text-gray-500">
-						自定义规则，开启一场精彩的创意对决
+						自定义规则，开启一场趣味猜画游戏
 					</p>
 				</div>
 
@@ -212,24 +213,38 @@ export function CreateGuessDrawRoom() {
 						</div>
 
 						{/* 私密房间设置 */}
-						<div className="space-y-3">
-							<div className="flex items-center space-x-2">
-								<Checkbox
-									id="isPrivate"
-									checked={isPrivate}
-									onCheckedChange={(checked) => setIsPrivate(!!checked)}
-								/>
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
 								<Label
 									htmlFor="isPrivate"
 									className="flex items-center gap-2 text-base font-semibold text-gray-800"
 								>
-									私密房间
+									<Lock className="h-4 w-4 text-gray-500" />
+									隐私设置
 								</Label>
 							</div>
 
+							<div className="flex items-center space-x-3">
+								<Checkbox
+									id="isPrivate"
+									checked={isPrivate}
+									onCheckedChange={(checked) => setIsPrivate(!!checked)}
+									className="h-5 w-5 rounded-sm"
+								/>
+								<label
+									htmlFor="isPrivate"
+									className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								>
+									设为私密房间
+								</label>
+							</div>
+
 							{isPrivate && (
-								<div className="space-y-2">
-									<Label htmlFor="password" className="text-sm text-gray-600">
+								<div className="mt-2">
+									<Label
+										htmlFor="password"
+										className="text-sm font-medium text-gray-700"
+									>
 										房间密码
 									</Label>
 									<Input
@@ -238,6 +253,7 @@ export function CreateGuessDrawRoom() {
 										placeholder="输入房间密码"
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
+										className="mt-1"
 										required
 									/>
 								</div>

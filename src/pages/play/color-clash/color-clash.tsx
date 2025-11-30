@@ -291,18 +291,18 @@ function ColorCanvas({
 		});
 	}, [players, currentPlayer, width, height]);
 
-	// --- 主游戏循环 ---
+	// 主游戏循环
 	useEffect(() => {
 		if (!isGameActive) return;
 
 		const animate = () => {
-			// 1. 本地移动逻辑
+			// 本地移动逻辑
 			if (currentPlayer) {
 				const currentX = localPlayerPosRef.current.x;
 				const currentY = localPlayerPosRef.current.y;
 				let deltaX = 0;
 				let deltaY = 0;
-				const moveSpeed = 1.2; // 【修改点】降低速度，之前是 4，现在 2.5 更细腻
+				const moveSpeed = 1.2; // 降低速度
 
 				if (keys.w || keys.up) deltaY -= moveSpeed;
 				if (keys.s || keys.down) deltaY += moveSpeed;
@@ -316,7 +316,7 @@ function ColorCanvas({
 					// 更新位置 Ref
 					localPlayerPosRef.current = { x: newX, y: newY };
 
-					// 【核心修复】本地立即绘制连续线条
+					// 本地立即绘制连续线条
 					const ctx = canvasRef.current?.getContext('2d');
 					if (ctx && lastLocalDrawPosRef.current) {
 						drawLine(
@@ -339,7 +339,7 @@ function ColorCanvas({
 				}
 			}
 
-			// 2. 远程玩家位置更新 (直接使用服务器位置，提高响应性)
+			// 远程玩家位置更新 (直接使用服务器位置，提高响应性)
 			players.forEach((player) => {
 				if (currentPlayer && player.userId === currentPlayer.userId) return;
 				const targetX = player.x ?? width / 2;
@@ -352,7 +352,7 @@ function ColorCanvas({
 				});
 			});
 
-			// 3. 绘制 Overlay (头像/光标)
+			// 绘制 Overlay (头像/光标)
 			const overlayCtx = overlayCanvasRef.current?.getContext('2d');
 			if (overlayCtx) {
 				overlayCtx.clearRect(0, 0, width, height);
